@@ -1,0 +1,28 @@
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+}
+
+body{
+    background: url(snakey.jpg);
+    background-size: cover;
+}
+
+#gameCanvas {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  #score {
+    text-align: center;
+    font-size: 140px;
+    font-family: 'Antic Slab', serif;
+  }
+
+/* #gameCanvas{
+    border: 2px solid red;
+} */
