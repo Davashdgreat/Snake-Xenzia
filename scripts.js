@@ -17,20 +17,116 @@ const GAME_SPEED = 100;
     // The user's score
     let score = 0;
     // When set to true the snake is changing direction
-    let changingDirection = false;
+    // let changingDirection = false;
     // Food x-coordinate
     let foodX;
     // Food y-coordinate
     let foodY;
-    // Horizontal velocity
-    let dx = 10;
-    // Vertical velocity
-    let dy = 0;
+    // // Horizontal velocity
+    // let dx = 10;
+    // // Vertical velocity
+    // let dy = 0;
 
     // Get the canvas element
     const gameCanvas = document.getElementById("gameCanvas");
     // Return a two dimensional drawing context
     const ctx = gameCanvas.getContext("2d");
+
+    // Define constants for keyboard keys
+    const LEFT_KEY = 37;
+    const RIGHT_KEY = 39;
+    const UP_KEY = 38;
+    const DOWN_KEY = 40;
+
+    // Define constants for touch directions
+    const TOUCH_LEFT = "left";
+    const TOUCH_RIGHT = "right";
+    const TOUCH_UP = "up";
+    const TOUCH_DOWN = "down";
+
+    // Define variables to track the current direction and touch direction
+    let dx = 10;
+    let dy = 0;
+    let changingDirection = false;
+    let touchDirection = null;
+
+    // Function to change the direction of the snake
+    function changeDirection(direction) {
+      if (changingDirection) return;
+      changingDirection = true;
+
+      switch (direction) {
+        case LEFT_KEY:
+        case TOUCH_LEFT:
+          if (dx !== 10) {
+            dx = -10;
+            dy = 0;
+          }
+          break;
+        case UP_KEY:
+        case TOUCH_UP:
+          if (dy !== 10) {
+            dx = 0;
+            dy = -10;
+          }
+          break;
+        case RIGHT_KEY:
+        case TOUCH_RIGHT:
+          if (dx !== -10) {
+            dx = 10;
+            dy = 0;
+          }
+          break;
+        case DOWN_KEY:
+        case TOUCH_DOWN:
+          if (dy !== -10) {
+            dx = 0;
+            dy = 10;
+          }
+          break;
+      }
+    }
+    // Add keyboard event listener
+    document.addEventListener("keydown", (event) => {
+      changeDirection(event.keyCode);
+    });
+
+    // Add touch event listeners
+    gameCanvas.addEventListener("touchstart", (event) => {
+      const touch = event.touches[0];
+      const startX = touch.clientX;
+      const startY = touch.clientY;
+      touchDirection = null;
+
+      gameCanvas.addEventListener("touchmove", (event) => {
+        const touch = event.touches[0];
+        const endX = touch.clientX;
+        const endY = touch.clientY;
+        const deltaX = endX - startX;
+        const deltaY = endY - startY;
+
+        if (Math.abs(deltaX) > Math.abs(deltaY)) {
+          if (deltaX > 0 && dx !== -10) {
+            touchDirection = TOUCH_RIGHT;
+          } else if (deltaX < 0 && dx !== 10) {
+            touchDirection = TOUCH_LEFT;
+          }
+        } else {
+          if (deltaY > 0 && dy !== -10) {
+            touchDirection = TOUCH_DOWN;
+          } else if (deltaY < 0 && dy !== 10) {
+            touchDirection = TOUCH_UP;
+          }
+        }
+      });
+
+      gameCanvas.addEventListener("touchend", () => {
+        if (touchDirection) {
+          changeDirection(touchDirection);
+          touchDirection = null;
+        }
+      });
+    });
 
     // Start game
     main();
@@ -38,7 +134,6 @@ const GAME_SPEED = 100;
     createFood();
     // Call changeDirection whenever a key is pressed
     document.addEventListener("keydown", changeDirection);
-
 
     /**
      * Main function of the game
@@ -118,22 +213,25 @@ const GAME_SPEED = 100;
      */
     function didGameEnd() {
       for (let i = 4; i < snake.length; i++) {
-        if (snake[i].x === snake[0].x && snake[i].y === snake[0].y) return true
+        if (snake[i].x === snake[0].x && snake[i].y === snake[0].y) {
+          restartGame();
+          return true;
+        }
       }
-
+    
       const hitLeftWall = snake[0].x < 0;
       const hitRightWall = snake[0].x > gameCanvas.width - 10;
-      const hitToptWall = snake[0].y < 0;
-      const hitBottomWall = snake[0].y > gameCanvas.height - 10;   
-      
-      if (hitLeftWall || hitRightWall || hitToptWall || hitBottomWall) {
-        // Call the restartGame function when the game ends
-        restartGame();}
-
-      return hitLeftWall || hitRightWall || hitToptWall || hitBottomWall
-    }
-
+      const hitTopWall = snake[0].y < 0;
+      const hitBottomWall = snake[0].y > gameCanvas.height - 10;
     
+      if (hitLeftWall || hitRightWall || hitTopWall || hitBottomWall) {
+        restartGame();
+        return true;
+      }
+    
+      return false;
+    }
+   
 
     /**
      * Generates a random number that is a multiple of 10 given a minumum
@@ -196,44 +294,44 @@ const GAME_SPEED = 100;
      * For example if the the direction is 'right' it cannot become 'left'
      * @param { object } event - The keydown event
      */
-    function changeDirection(event) {
-      const LEFT_KEY = 37;
-      const RIGHT_KEY = 39;
-      const UP_KEY = 38;
-      const DOWN_KEY = 40;
-      /**
-       * Prevent the snake from reversing
-       * Example scenario:
-       * Snake is moving to the right. User presses down and immediately left
-       * and the snake immediately changes direction without taking a step down first
-       */
-      if (changingDirection) return;
-      changingDirection = true;
+    // function changeDirection(event) {
+    //   const LEFT_KEY = 37;
+    //   const RIGHT_KEY = 39;
+    //   const UP_KEY = 38;
+    //   const DOWN_KEY = 40;
+    //   /**
+    //    * Prevent the snake from reversing
+    //    * Example scenario:
+    //    * Snake is moving to the right. User presses down and immediately left
+    //    * and the snake immediately changes direction without taking a step down first
+    //    */
+    //   if (changingDirection) return;
+    //   changingDirection = true;
 
-      const keyPressed = event.keyCode;
+    //   const keyPressed = event.keyCode;
 
-      const goingUp = dy === -10;
-      const goingDown = dy === 10;
-      const goingRight = dx === 10;
-      const goingLeft = dx === -10;
+    //   const goingUp = dy === -10;
+    //   const goingDown = dy === 10;
+    //   const goingRight = dx === 10;
+    //   const goingLeft = dx === -10;
 
-      if (keyPressed === LEFT_KEY && !goingRight) {
-        dx = -10;
-        dy = 0;
-      }
-      if (keyPressed === UP_KEY && !goingDown) {
-        dx = 0;
-        dy = -10;
-      }
-      if (keyPressed === RIGHT_KEY && !goingLeft) {
-        dx = 10;
-        dy = 0;
-      }
-      if (keyPressed === DOWN_KEY && !goingUp) {
-        dx = 0;
-        dy = 10;
-      }
-    }
+    //   if (keyPressed === LEFT_KEY && !goingRight) {
+    //     dx = -10;
+    //     dy = 0;
+    //   }
+    //   if (keyPressed === UP_KEY && !goingDown) {
+    //     dx = 0;
+    //     dy = -10;
+    //   }
+    //   if (keyPressed === RIGHT_KEY && !goingLeft) {
+    //     dx = 10;
+    //     dy = 0;
+    //   }
+    //   if (keyPressed === DOWN_KEY && !goingUp) {
+    //     dx = 0;
+    //     dy = 10;
+    //   }
+    // }
 
     function restartGame() {
         const shouldRestart = confirm("You lost! Do you want to restart the game?");
